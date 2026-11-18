@@ -1,0 +1,37 @@
+name: Bug report
+description: Something in this library doesn't work as it should.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: A graph, the nodes, the clicks or commands that lead there.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Library and Haywire versions
+      description: For example haybale-comfyui 0.0.12 on haywire 0.5.4, or commits.
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and hardware
+      description: Cameras, GPUs or other devices involved, if any.
+    validations:
+      required: false

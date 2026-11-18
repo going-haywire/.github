@@ -1,0 +1,21 @@
+{
+  "name": "going-haywire",
+  "owner": {
+    "name": "going-haywire"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for developing the going-haywire repositories."
+  },
+  "plugins": [
+    {
+      "name": "haywire-dev",
+      "description": "The going-haywire development workflow for library repositories: the haywire-workflow skill and the hooks that guard it.",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/going-haywire/haywire.git",
+        "path": "plugins/haywire-dev",
+        "ref": "master"
+      }
+    }
+  ]
+}

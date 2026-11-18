@@ -1,5 +1,5 @@
 # Labels and welcomes a library's pull requests (CONTRIBUTING.md):
-# - `needs introduction`: the author is not an owner, member or collaborator and has no
+# - `needs introduction`: the author cannot write to the repository and has no
 #   introduction labelled `introduction accepted` in core (going-haywire/haywire), where
 #   introductions for every repository live. Removed again on a later run once accepted.
 # - `agent files`: the pull request changes files that steer agents or CI; the maintainer
@@ -37,6 +37,9 @@ jobs:
       - name: Introduction
         run: |
           case "$ASSOCIATION" in OWNER | MEMBER | COLLABORATOR) exit 0 ;; esac
+          # A private org member arrives as CONTRIBUTOR: ask for the author's permission.
+          permission=$(gh api "repos/$GH_REPO/collaborators/$AUTHOR/permission" --jq .role_name || true)
+          case "$permission" in admin | maintain | write) exit 0 ;; esac
           accepted=$(gh issue list --repo "$INTRODUCTIONS" --author "$AUTHOR" \
             --label "introduction accepted" --state all --limit 1 --json number --jq length)
           if [ "$accepted" != "0" ]; then

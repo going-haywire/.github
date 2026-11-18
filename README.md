@@ -11,6 +11,7 @@ the community files; the library repositories (`haybale-*`) take theirs from her
 | `.github/workflows/library-ci.yml` | Reusable CI for a library: its tests against core `master` | each library's `ci.yml` and `nightly.yml` |
 | `.github/workflows/pr-intake.yml` | Reusable intake: labels a pull request from its metadata | each library's `pr-intake.yml` |
 | `.github/workflows/lint.yml` | This repository's own check: actionlint on the workflows | this repository |
+| `.claude-plugin/marketplace.json` | The Claude Code marketplace `going-haywire`: the `haywire-dev` plugin (workflow skill and hooks), taken from core's [`plugins/haywire-dev/`](https://github.com/going-haywire/haywire/tree/master/plugins/haywire-dev) on `master` | each library's `.claude/settings.json` |
 
 ## Calling a reusable workflow
 

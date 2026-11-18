@@ -1,0 +1,110 @@
+# CI for a library repository: lint and the library's tests, against core's master.
+# Called by a library's ci.yml (pull request and push to the default branch) and
+# nightly.yml (schedule), pinned to a commit of this repository.
+#
+# A development library reaches core by relative paths (../haywire-repo/...); this
+# workflow checks the library out at <workspace>/library and core's master beside it at
+# <workspace>/haywire-repo, so those paths resolve. A library without such paths installs
+# core from PyPI and core is not checked out.
+#
+# A draft pull request runs on Linux only; a ready one and the nightly run add macOS.
+#
+# Read-only: a fork's pull request runs this with the caller's read-only token and no
+# secrets (core's ADR 0080). Nothing here writes back.
+name: Library CI
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: Python the library is tested on.
+        type: string
+        default: '3.12'
+      pytest-args:
+        description: Arguments after `pytest`, for example a marker filter.
+        type: string
+        default: '-q --maxfail=0'
+      system-packages:
+        description: Space-separated apt packages a test needs on Linux (for example libasound2-dev).
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: library
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: library
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      # Only the dev group, from the lock as it is: ruff needs neither core nor the library.
+      - name: ruff check
+        run: uv run --frozen --only-group dev ruff check .
+      - name: ruff format --check
+        run: uv run --frozen --only-group dev ruff format --check .
+
+  tests:
+    name: tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ ((github.event_name == 'pull_request' && !github.event.pull_request.draft) || github.event_name == 'schedule') && fromJSON('["ubuntu-24.04", "macos-latest"]') || fromJSON('["ubuntu-24.04"]') }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: library
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: library
+      - name: Does the library reach core by path?
+        id: dev
+        run: |
+          if grep -q '\.\./haywire-repo/' pyproject.toml; then
+            echo "core=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "core=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Check out core master beside the library
+        if: steps.dev.outputs.core == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: going-haywire/haywire
+          ref: master
+          path: haywire-repo
+      - name: Core commit under test
+        if: steps.dev.outputs.core == 'true'
+        working-directory: haywire-repo
+        run: echo "core master at $(git rev-parse --short HEAD)" >> "$GITHUB_STEP_SUMMARY"
+      - name: System packages
+        if: runner.os == 'Linux' && inputs.system-packages != ''
+        env:
+          PACKAGES: ${{ inputs.system-packages }}
+        # Word splitting is intended: the input is a space-separated list.
+        run: sudo apt-get update && sudo apt-get install -y $PACKAGES
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+      - env:
+          PYTHON_VERSION: ${{ inputs.python-version }}
+        run: uv python install "$PYTHON_VERSION"
+      # Not --locked: a development library's lock records core's versions and goes stale
+      # with every core release; the run relocks against the checkout.
+      - run: uv sync --all-extras --dev
+      - name: Raise the file-watch limit
+        if: runner.os == 'Linux'
+        run: sudo sysctl -w fs.inotify.max_user_instances=8192
+      - name: pytest
+        env:
+          PYTEST_ARGS: ${{ inputs.pytest-args }}
+        # Word splitting is intended: the input is an argument list.
+        run: uv run pytest $PYTEST_ARGS

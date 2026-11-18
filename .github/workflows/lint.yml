@@ -1,0 +1,24 @@
+# This repository's own check: actionlint (with shellcheck) on every workflow.
+# The required check of the PR gate ruleset.
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Go's module proxy is checksummed, so the version is immutable.
+      - name: Install actionlint
+        run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
+      - name: actionlint
+        run: "$(go env GOPATH)/bin/actionlint -color"

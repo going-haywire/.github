@@ -1,8 +1,12 @@
 # going-haywire/.github
 
-What every repository of the going-haywire organisation shares. Core
-([going-haywire/haywire](https://github.com/going-haywire/haywire)) carries its own copies of
-the community files; the library repositories (`haybale-*`) take theirs from here.
+What every repository of the going-haywire organisation shares. The library repositories
+(`haybale-*`) take their community files from here. Core
+([going-haywire/haywire](https://github.com/going-haywire/haywire)) keeps its own: they say
+more than a library's (the whole contribution process, the studio's security scope, the
+introduction form), and its process has to be in every clone, where people and agents read
+it. GitHub shows a file from here only in a repository that has none of its own, and never
+in a clone. The library files point to core's for what they share.
 
 | Path | What | Used by |
 |---|---|---|

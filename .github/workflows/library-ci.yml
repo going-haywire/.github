@@ -21,7 +21,7 @@ on:
         type: string
         default: '3.12'
       pytest-args:
-        description: Arguments after `pytest`, for example a marker filter.
+        description: Arguments after `pytest`, quoted as in a shell, for example -m "not network".
         type: string
         default: '-q --maxfail=0'
       system-packages:
@@ -107,6 +107,11 @@ jobs:
       - name: pytest
         env:
           PYTEST_ARGS: ${{ inputs.pytest-args }}
+        # xargs splits the arguments as a shell would, quotes included, without running
+        # anything in them. macOS's xargs runs nothing on empty input, hence the branch.
         run: |
-          # shellcheck disable=SC2086 # word splitting intended: an argument list
-          uv run pytest $PYTEST_ARGS
+          if [ -n "$PYTEST_ARGS" ]; then
+            printf '%s' "$PYTEST_ARGS" | xargs uv run pytest
+          else
+            uv run pytest
+          fi

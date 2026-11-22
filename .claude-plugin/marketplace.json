@@ -9,11 +9,11 @@
   "plugins": [
     {
       "name": "haywire-dev",
-      "description": "The going-haywire development workflow for library repositories: the haywire-workflow skill and the hooks that guard it.",
+      "description": "The going-haywire development workflow for library repositories: a pointer to the workflow page and the hooks that guard it. Transitional until each library carries its own adapters (going-haywire/haywire#212).",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/going-haywire/haywire.git",
-        "path": "plugins/haywire-dev",
+        "path": "dev",
         "ref": "master"
       }
     }

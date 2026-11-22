@@ -16,7 +16,7 @@ in a clone. The library files point to core's for what they share.
 | `.github/workflows/pr-intake.yml` | Reusable intake: labels a pull request from its metadata | each library's `pr-intake.yml` |
 | `.github/workflows/lint.yml` | This repository's own check: actionlint on the workflows, shellcheck on the scripts | this repository |
 | `rulesets/library/`, `scripts/library-settings.sh` | A library's rulesets (*Permanent refs*, *Release tags*, *PR gate*) and the script that applies them, the merge settings and the intake's labels | the owner, once per library repository |
-| `.claude-plugin/marketplace.json` | The Claude Code marketplace `going-haywire`: the `haywire-dev` plugin (workflow skill and hooks), taken from core's [`plugins/haywire-dev/`](https://github.com/going-haywire/haywire/tree/master/plugins/haywire-dev) on `master` | each library's `.claude/settings.json` |
+| `.claude-plugin/marketplace.json` | The Claude Code marketplace `going-haywire`: the `haywire-dev` plugin (a pointer to the workflow page and its hooks), taken from core's [`dev/`](https://github.com/going-haywire/haywire/tree/master/dev) on `master`; transitional until each library carries its own adapters (going-haywire/haywire#212) | each library's `.claude/settings.json` |
 
 ## Calling a reusable workflow
 

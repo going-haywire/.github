@@ -16,6 +16,7 @@ in a clone. The library files point to core's for what they share.
 | `.github/workflows/pr-intake.yml` | Reusable intake: labels a pull request from its metadata | each library's `pr-intake.yml` |
 | `.github/workflows/lint.yml` | This repository's own check: actionlint on the workflows, shellcheck on the scripts | this repository |
 | `rulesets/library/`, `scripts/library-settings.sh` | A library's rulesets (*Permanent refs*, *Release tags*, *PR gate*) and the script that applies them, the merge settings and the intake's labels | the owner, once per library repository |
+| `templates/library/`, `scripts/library-files.sh` | A library's agent files (`.claude/settings.json` with core's hooks, `.mcp.json` with the Farmhand bridge, `t3.json`, `[tool.haywire.agents]` in `pyproject.toml`, the machine-local `.haywire` files in `.gitignore`, `CLAUDE.md`'s workflow paragraph) and the script that opens a pull request in a library with them | the owner, for each library repository |
 | `.claude-plugin/marketplace.json` | The Claude Code marketplace `going-haywire`: the `haywire-dev` plugin (a pointer to the workflow page and its hooks), taken from core's [`dev/`](https://github.com/going-haywire/haywire/tree/master/dev) on `master`; transitional until each library carries its own adapters (going-haywire/haywire#212) | each library's `.claude/settings.json` |
 
 ## Calling a reusable workflow
@@ -33,6 +34,19 @@ jobs:
 
 A change here reaches a library only when that library moves its pin, in a pull request
 where its own CI runs the new version first.
+
+## A library repository's agent files
+
+Every session in a library and its worktrees gets core's workflow page, its hooks and the
+Farmhand bridge from committed files, with nothing to install. They reach core through the
+clone beside the library (`../haywire-repo`). From a clone of this repository, logged in to `gh`:
+
+```sh
+scripts/library-files.sh going-haywire/haybale-<name>           # shows the diff it would propose
+scripts/library-files.sh going-haywire/haybale-<name> --apply   # opens the pull request
+```
+
+It works in a fresh clone in a temporary folder and is safe to run again.
 
 ## A library repository's settings
 

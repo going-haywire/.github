@@ -1,0 +1,11 @@
+{
+  "name": "Haywire library PR intake",
+  "description": "Labels and welcomes pull requests (needs introduction, agent files) through the org's reusable workflow.",
+  "iconName": "octicon check-circle",
+  "categories": [
+    "Python"
+  ],
+  "filePatterns": [
+    "pyproject.toml$"
+  ]
+}

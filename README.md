@@ -1,22 +1,24 @@
 # going-haywire/.github
 
-What every repository of the going-haywire organisation shares. The library repositories
-(`haybale-*`) take their community files from here. Core
-([going-haywire/haywire](https://github.com/going-haywire/haywire)) keeps its own: they say
-more than a library's (the whole contribution process, the studio's security scope, the
-introduction form), and its process has to be in every clone, where people and agents read
-it. GitHub shows a file from here only in a repository that has none of its own, and never
-in a clone. The library files point to core's for what they share.
+What every repository of the going-haywire organisation shares, the way GitHub distributes it:
+community files it shows wherever a repository has none of its own, workflows other repositories
+call, workflow templates, and the repository settings it applies. GitHub shows a file from here
+only on its website, never in a clone; the text people and agents read lives in core's docs.
+
+Core ([going-haywire/haywire](https://github.com/going-haywire/haywire)) takes every community file
+from here except its issue templates: introductions are filed in core, so the introduction form
+lives there, and the libraries' default issue templates link to it.
 
 | Path | What | Used by |
 |---|---|---|
-| `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md` | Org defaults: GitHub shows them in any repository that has no file of its own | library repositories |
-| `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/` | Default pull request and issue templates | library repositories |
+| `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md` | Org defaults: GitHub shows them in any repository that has no file of its own. `CONTRIBUTING.md` points to core's contributing page | every repository |
+| `.github/pull_request_template.md` | Default pull request template | every repository |
+| `.github/ISSUE_TEMPLATE/` | Default issue templates, linking to core's introduction form | library repositories |
 | `.github/workflows/library-ci.yml` | Reusable CI for a library: its tests against core `master` | each library's `ci.yml` and `nightly.yml` |
 | `.github/workflows/pr-intake.yml` | Reusable intake: labels a pull request from its metadata | each library's `pr-intake.yml` |
 | `.github/workflows/lint.yml` | This repository's own check: actionlint on the workflows, shellcheck on the scripts | this repository |
+| `workflow-templates/` | A library's CI callers (`ci.yml`, `nightly.yml`, `pr-intake.yml`) and its `dependabot.yml`. GitHub offers the callers under *Actions → New workflow*; core's `haywire init --org-files` writes all four into a library that lacks them, pinned to this repository's current commit | every library repository, once |
 | `rulesets/library/`, `scripts/library-settings.sh` | A library's rulesets (*Permanent refs*, *Release tags*, *PR gate*) and the script that applies them, the merge settings and the intake's labels | the owner, once per library repository |
-| `templates/library/`, `scripts/library-files.sh` | A library's agent files (`.claude/settings.json` with core's hooks, `.mcp.json` with the Farmhand bridge, `t3.json`, `[tool.haywire.agents]` in `pyproject.toml`, the machine-local `.haywire` files in `.gitignore`, `CLAUDE.md`'s workflow paragraph) and the script that opens a pull request in a library with them | the owner, for each library repository |
 
 ## Calling a reusable workflow
 
@@ -34,18 +36,14 @@ jobs:
 A change here reaches a library only when that library moves its pin, in a pull request
 where its own CI runs the new version first.
 
-## A library repository's agent files
+## A library repository's files
 
-Every session in a library and its worktrees gets core's workflow page, its hooks and the
-Farmhand bridge from committed files, with nothing to install. They reach core through the
-clone beside the library (`../haywire-repo`). From a clone of this repository, logged in to `gh`:
-
-```sh
-scripts/library-files.sh going-haywire/haybale-<name>           # shows the diff it would propose
-scripts/library-files.sh going-haywire/haybale-<name> --apply   # opens the pull request
-```
-
-It works in a fresh clone in a temporary folder and is safe to run again.
+A library's repository files come from one command of core, run in the library:
+`haywire init --org-files` (or `haywire init <name> --dev --org-files` for a new one). It writes
+the CI callers and `dependabot.yml` from `workflow-templates/` here when the library lacks them
+(once there, they are the library's own and Dependabot moves their pins), and the agent files from
+core every time. Setting up a library repository, step by step: core's
+[a new organisation library](https://going-haywire.github.io/haywire/docs/collaboration/new-org-library/).
 
 ## A library repository's settings
 

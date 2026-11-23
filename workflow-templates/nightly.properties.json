@@ -1,0 +1,11 @@
+{
+  "name": "Haywire library nightly",
+  "description": "The same checks every night against core's master as it is then.",
+  "iconName": "octicon check-circle",
+  "categories": [
+    "Python"
+  ],
+  "filePatterns": [
+    "pyproject.toml$"
+  ]
+}

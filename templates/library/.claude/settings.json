@@ -57,8 +57,5 @@
   },
   "enabledMcpjsonServers": [
     "farmhand"
-  ],
-  "enabledPlugins": {
-    "haywire-dev@going-haywire": false
-  }
+  ]
 }

@@ -3,7 +3,7 @@
 Thanks for helping. The libraries of going-haywire (`haybale-*`) follow core's process:
 roles, the introduction, issues before larger changes, pull requests from a fork, review
 and the rules for agents are in core's
-[CONTRIBUTING.md](https://github.com/going-haywire/haywire/blob/master/CONTRIBUTING.md).
+[CONTRIBUTING.md](https://github.com/going-haywire/haywire/blob/master/docs/collaboration/contributing.md).
 This page holds only what differs in a library repository.
 
 ## Your first contribution

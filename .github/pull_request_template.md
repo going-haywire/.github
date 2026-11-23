@@ -5,7 +5,7 @@
 
 ## Checklist
 
-- [ ] My introduction is accepted, or I am the maintainer ([CONTRIBUTING.md](https://github.com/going-haywire/haywire/blob/master/CONTRIBUTING.md#your-first-contribution-introduce-yourself))
+- [ ] My introduction is accepted, or I am the maintainer ([CONTRIBUTING.md](https://github.com/going-haywire/haywire/blob/master/docs/collaboration/contributing.md#your-first-contribution-introduce-yourself))
 - [ ] `ruff check`, `ruff format --check` and `pytest` pass
 - [ ] Docs are updated where behaviour changed
 - [ ] No version numbers changed; a dependency floor raised only for an unreleased core change

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Give one library repository the organisation's agent files from templates/library/: the
-# Claude adapter (.claude/settings.json: core's hooks, the Farmhand bridge allowed, the
-# transitional haywire-dev plugin off), .mcp.json (the bridge), t3.json (worktree setup,
+# Claude adapter (.claude/settings.json: core's hooks, the Farmhand bridge allowed),
+# .mcp.json (the bridge), t3.json (worktree setup,
 # finish, studio), the [tool.haywire.agents] table in pyproject.toml, the machine-local
 # .haywire files in .gitignore, and CLAUDE.md's workflow paragraph.
 #
@@ -47,11 +47,14 @@ from pathlib import Path
 
 template = Path(sys.argv[1])
 
-# .claude/settings.json: the template's keys over the library's own, without the plugin's
-# marketplace (the plugin stays switched off until the organisation removes it).
+# .claude/settings.json: the template's keys over the library's own, without the retired
+# haywire-dev plugin and its marketplace.
 path = Path(".claude/settings.json")
 settings = json.loads(path.read_text()) if path.exists() else {}
 settings.pop("extraKnownMarketplaces", None)
+settings.get("enabledPlugins", {}).pop("haywire-dev@going-haywire", None)
+if settings.get("enabledPlugins") == {}:
+    settings.pop("enabledPlugins")
 settings.update(json.loads((template / ".claude" / "settings.json").read_text()))
 path.parent.mkdir(exist_ok=True)
 path.write_text(json.dumps(settings, indent=2) + "\n")
@@ -110,7 +113,7 @@ its hooks and the Farmhand bridge from committed files, with nothing to
 install: .claude/settings.json runs core's hooks from ../haywire-repo,
 .mcp.json starts the bridge, [tool.haywire.agents] names core's developer
 docs, and t3.json sets up a worktree wherever T3 puts it
-(going-haywire/haywire#212). The haywire-dev plugin is switched off here.
+(going-haywire/haywire#212).
 MSG
 git push --quiet -u origin "$BRANCH"
 gh pr create --repo "$REPO" --head "$BRANCH" --title "chore(agents): the organisation's agent files" --body \

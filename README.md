@@ -17,24 +17,39 @@ lives there, and the libraries' default issue templates link to it.
 | `.github/workflows/library-ci.yml` | Reusable CI for a library: its tests against core `master` | each library's `ci.yml` and `nightly.yml` |
 | `.github/workflows/pr-intake.yml` | Reusable intake: labels a pull request from its metadata | each library's `pr-intake.yml` |
 | `.github/workflows/lint.yml` | This repository's own check: actionlint on the workflows, shellcheck on the scripts | this repository |
-| `workflow-templates/` | A library's CI callers (`ci.yml`, `nightly.yml`, `pr-intake.yml`) and its `dependabot.yml`. GitHub offers the callers under *Actions → New workflow*; core's `haywire init --org-files` writes all four into a library that lacks them, pinned to this repository's current commit | every library repository, once |
+| `workflow-templates/` | A library's CI callers (`ci.yml`, `nightly.yml`, `pr-intake.yml`) and its `dependabot.yml`. GitHub offers the callers under *Actions → New workflow*; core's `haywire init --org-files` writes all four into a library that lacks them, pinned to this repository's latest release | every library repository, once |
 | `rulesets/library/`, `scripts/library-settings.sh` | A library's rulesets (*Permanent refs*, *Release tags*, *PR gate*) and the script that applies them, the merge settings and the intake's labels | the owner, once per library repository |
 
 ## Calling a reusable workflow
 
-A library calls a workflow pinned to a commit of this repository, with the tag or date as a
-comment, the same way every Action is pinned
+A library calls a workflow pinned to the commit of one of this repository's releases, with the
+tag as a comment, the same way every Action is pinned
 ([ADR 0080](https://github.com/going-haywire/haywire/blob/master/docs/adr/0080-untrusted-pull-requests-meet-nothing-with-power.md)).
-Dependabot (`github-actions`) proposes the next commit.
+Dependabot (`github-actions`) follows the releases: its weekly pull request in each library moves
+the pin to the next one.
 
 ```yaml
 jobs:
   ci:
-    uses: going-haywire/.github/.github/workflows/library-ci.yml@<commit> # 2026-11-18
+    uses: going-haywire/.github/.github/workflows/library-ci.yml@<commit> # v1.0.0
 ```
 
 A change here reaches a library only when that library moves its pin, in a pull request
 where its own CI runs the new version first.
+
+### Releases
+
+A release is a `vX.Y.Z` tag on `main`, made by the owner after a merge that changes what a
+library runs: a reusable workflow or a workflow template. A patch for a fix, a minor version for
+something new, a major one when a library's caller has to change too. The community files and
+the rulesets need no release: GitHub reads the first from `main`, and `library-settings.sh`
+applies the second.
+
+```sh
+git switch main && git pull --ff-only
+git tag -a vX.Y.Z -m vX.Y.Z
+git push origin vX.Y.Z
+```
 
 ## A library repository's files
 

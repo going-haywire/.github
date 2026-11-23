@@ -1,0 +1,11 @@
+{
+  "name": "Haywire library CI",
+  "description": "Lint and tests against core's master through the org's reusable workflow; a draft PR runs on Linux, a ready one adds macOS.",
+  "iconName": "octicon check-circle",
+  "categories": [
+    "Python"
+  ],
+  "filePatterns": [
+    "pyproject.toml$"
+  ]
+}

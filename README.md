@@ -56,12 +56,13 @@ library calls `library-ci.yml` (every pull request, the default branch, the nigh
 same `pytest-args` and `system-packages`. A library has no browser tests here, so these are its
 non-browser tests, as in core's own `floors` job.
 
-- **Direct requirements** are those of the library's packages (`barn/*`), its development
-  project and its dev group. A requirement without a floor (`numpy`) resolves to the oldest
-  release on PyPI, which usually fails: give it one.
-- **Core.** A library that reaches core by path tests its third-party floors against core
-  `master`, whose own requirements stay at their newest. A library that installs core from PyPI
-  tests its `haywire-core` floor too.
+- **Direct requirements**, to uv, are those of every local package: the library's packages
+  (`barn/*`), its development project and its dev group. A requirement without a floor (`numpy`)
+  resolves to the oldest release on PyPI, which usually fails: give it one.
+- **Core.** A library that reaches core by path gets core's packages from `master` as local
+  packages, so core's floors are lowered and tested with the library's. A library that installs
+  core from PyPI tests its `haywire-core` floor instead, and core's own requirements stay at their
+  newest.
 - **uv's two traps** (core's
   [.insights/project_uv_lowest_direct_relocks.md](https://github.com/going-haywire/haywire/blob/master/.insights/project_uv_lowest_direct_relocks.md)):
   the job sets `UV_RESOLUTION=lowest-direct` for every command, since a plain `uv run` would

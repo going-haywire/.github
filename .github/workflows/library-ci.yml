@@ -124,10 +124,11 @@ jobs:
             uv run pytest
           fi
 
-  # The tests at the dependency floors: every direct requirement of the library (its
-  # packages', the development project's and the dev group's) resolved to the oldest
-  # version it allows. Core's own requirements stay at their newest when core comes by
-  # path; a library installing core from PyPI tests its haywire-core floor too.
+  # The tests at the dependency floors: every direct requirement resolved to the oldest
+  # version it allows. uv counts as direct the requirements of every local package: the
+  # library's packages, its development project and dev group, and, when core comes by
+  # path, core's packages from master too. A library installing core from PyPI tests its
+  # haywire-core floor instead, and core's requirements stay at their newest.
   # Two uv traps (core's .insights/project_uv_lowest_direct_relocks.md): UV_RESOLUTION in
   # the environment, or a later `uv run` relocks at highest; and --upgrade, or uv keeps
   # the versions the committed lock holds.

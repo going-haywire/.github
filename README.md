@@ -14,7 +14,7 @@ lives there, and the libraries' default issue templates link to it.
 | `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md` | Org defaults: GitHub shows them in any repository that has no file of its own. `CONTRIBUTING.md` points to core's contributing page | every repository |
 | `.github/pull_request_template.md` | Default pull request template | every repository |
 | `.github/ISSUE_TEMPLATE/` | Default issue templates, linking to core's introduction form | library repositories |
-| `.github/workflows/library-ci.yml` | Reusable CI for a library: its tests against core `master` | each library's `ci.yml` and `nightly.yml` |
+| `.github/workflows/library-ci.yml` | Reusable CI for a library: its tests against core `master`, and again at its dependency floors (*The floors job*) | each library's `ci.yml` and `nightly.yml` |
 | `.github/workflows/pr-intake.yml` | Reusable intake: labels a pull request from its metadata | each library's `pr-intake.yml` |
 | `.github/workflows/lint.yml` | This repository's own check: actionlint on the workflows, shellcheck on the scripts | this repository |
 | `workflow-templates/` | A library's CI callers (`ci.yml`, `nightly.yml`, `pr-intake.yml`) and its `dependabot.yml`. GitHub offers the callers under *Actions → New workflow*; core's `haywire init --org-files` writes all four into a library that lacks them, pinned to this repository's latest release | every library repository, once |
@@ -36,6 +36,40 @@ jobs:
 
 A change here reaches a library only when that library moves its pin, in a pull request
 where its own CI runs the new version first.
+
+### `library-ci.yml`'s inputs
+
+| Input | Default | What |
+|---|---|---|
+| `python-version` | `'3.12'` | The Python the tests run on |
+| `pytest-args` | `-q --maxfail=0` | The arguments after `pytest`, split as a shell would split them, for example `-m not(network)` |
+| `system-packages` | `''` | apt packages a test needs on Linux, space-separated |
+| `floors` | `true` | Run the *floors* job as well; `false` turns it off |
+
+### The floors job
+
+Next to `tests`, the `floors` job (check `ci / floors`) runs the same tests with every direct
+requirement of the library at its floor, the oldest version it declares: core's
+[ADR 0095](https://github.com/going-haywire/haywire/blob/master/docs/adr/0095-a-dependency-floor-is-the-oldest-version-known-to-work.md),
+*a dependency floor is the oldest version known to work*. It runs on Linux only, wherever the
+library calls `library-ci.yml` (every pull request, the default branch, the nightly), with the
+same `pytest-args` and `system-packages`. A library has no browser tests here, so these are its
+non-browser tests, as in core's own `floors` job.
+
+- **Direct requirements** are those of the library's packages (`barn/*`), its development
+  project and its dev group. A requirement without a floor (`numpy`) resolves to the oldest
+  release on PyPI, which usually fails: give it one.
+- **Core.** A library that reaches core by path tests its third-party floors against core
+  `master`, whose own requirements stay at their newest. A library that installs core from PyPI
+  tests its `haywire-core` floor too.
+- **uv's two traps** (core's
+  [.insights/project_uv_lowest_direct_relocks.md](https://github.com/going-haywire/haywire/blob/master/.insights/project_uv_lowest_direct_relocks.md)):
+  the job sets `UV_RESOLUTION=lowest-direct` for every command, since a plain `uv run` would
+  relock at highest, and syncs with `uv sync --upgrade`, since uv would keep the versions the
+  committed lock holds. The run's summary lists the versions it installed.
+- **Locally**, from the library:
+  `UV_RESOLUTION=lowest-direct uv sync --upgrade --all-extras --dev && UV_RESOLUTION=lowest-direct uv run pytest`,
+  then `git checkout uv.lock`.
 
 ### Releases
 

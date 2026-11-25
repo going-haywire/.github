@@ -9,6 +9,10 @@
 #
 # A draft pull request runs on Linux only; a ready one and the nightly run add macOS.
 #
+# The floors job runs the same tests with every direct requirement at its floor, the
+# oldest version the library declares (core's ADR 0095), on Linux only. A caller turns it
+# off with `floors: false`.
+#
 # Read-only: a fork's pull request runs this with the caller's read-only token and no
 # secrets (core's ADR 0080). Nothing here writes back.
 name: Library CI
@@ -28,6 +32,10 @@ on:
         description: Space-separated apt packages a test needs on Linux (for example libasound2-dev).
         type: string
         default: ''
+      floors:
+        description: Also run the tests with every direct requirement at its floor (uv's lowest-direct resolution), on Linux.
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -109,6 +117,76 @@ jobs:
           PYTEST_ARGS: ${{ inputs.pytest-args }}
         # xargs splits the arguments as a shell would, quotes included, without running
         # anything in them. macOS's xargs runs nothing on empty input, hence the branch.
+        run: |
+          if [ -n "$PYTEST_ARGS" ]; then
+            printf '%s' "$PYTEST_ARGS" | xargs uv run pytest
+          else
+            uv run pytest
+          fi
+
+  # The tests at the dependency floors: every direct requirement resolved to the oldest
+  # version it allows. uv counts as direct the requirements of every local package: the
+  # library's packages, its development project and dev group, and, when core comes by
+  # path, core's packages from master too. A library installing core from PyPI tests its
+  # haywire-core floor instead, and core's requirements stay at their newest.
+  # Two uv traps (core's .insights/project_uv_lowest_direct_relocks.md): UV_RESOLUTION in
+  # the environment, or a later `uv run` relocks at highest; and --upgrade, or uv keeps
+  # the versions the committed lock holds.
+  floors:
+    name: floors
+    if: inputs.floors
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      UV_RESOLUTION: lowest-direct
+    defaults:
+      run:
+        working-directory: library
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: library
+      - name: Does the library reach core by path?
+        id: dev
+        run: |
+          if grep -q '\.\./haywire-repo/' pyproject.toml; then
+            echo "core=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "core=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Check out core master beside the library
+        if: steps.dev.outputs.core == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: going-haywire/haywire
+          ref: master
+          path: haywire-repo
+      - name: Core commit under test
+        if: steps.dev.outputs.core == 'true'
+        working-directory: haywire-repo
+        run: echo "core master at $(git rev-parse --short HEAD)" >> "$GITHUB_STEP_SUMMARY"
+      - name: System packages
+        if: inputs.system-packages != ''
+        env:
+          PACKAGES: ${{ inputs.system-packages }}
+        run: |
+          # shellcheck disable=SC2086 # word splitting intended: a space-separated list
+          sudo apt-get update && sudo apt-get install -y $PACKAGES
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+      - env:
+          PYTHON_VERSION: ${{ inputs.python-version }}
+        run: uv python install "$PYTHON_VERSION"
+      - run: uv sync --upgrade --all-extras --dev
+      - name: Versions under test
+        run: |
+          { echo '```'; uv pip list; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Raise the file-watch limit
+        run: sudo sysctl -w fs.inotify.max_user_instances=8192
+      - name: pytest at the floors
+        env:
+          PYTEST_ARGS: ${{ inputs.pytest-args }}
         run: |
           if [ -n "$PYTEST_ARGS" ]; then
             printf '%s' "$PYTEST_ARGS" | xargs uv run pytest
